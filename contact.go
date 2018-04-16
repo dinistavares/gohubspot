@@ -5,14 +5,14 @@ import "fmt"
 type ContactsService service
 
 type Contact struct {
-	Vid          int        `json:"vid"`
-	CanonicalVid int        `json:"canonical-vid"`
-	MergedVids   []int      `json:"merged-vids"`
-	PortalID     int        `json:"portal-id"`
-	IsContact    bool       `json:"is-contact"`
-	ProfileToken string     `json:"profile-token"`
-	ProfileURL   string     `json:"profile-url"`
-	Properties   Properties `json:"properties"`
+	Vid          int        	     `json:"vid"`
+	CanonicalVid int        	     `json:"canonical-vid"`
+	MergedVids   []int      	     `json:"merged-vids"`
+	PortalID     int        	     `json:"portal-id"`
+	IsContact    bool       	     `json:"is-contact"`
+	ProfileToken string     	     `json:"profile-token"`
+	ProfileURL   string     	   	 `json:"profile-url"`
+	Properties   map[string]Property `json:"properties"`
 }
 
 func (s *ContactsService) Create(properties Properties) (*IdentityProfile, error) {
@@ -57,6 +57,13 @@ func (s *ContactsService) Merge(primaryID, secondaryID int) error {
 	}
 
 	return s.client.RunPost(url, secondary, nil)
+}
+
+func (s *ContactsService) GetById(contactID int) (*Contact, error) {
+	url := fmt.Sprintf("/contacts/v1/contact/vid/%d/profile", contactID)
+	res := new(Contact)
+	err := s.client.RunGet(url, res)
+	return res, err
 }
 
 func (s *ContactsService) GetByToken(token string) (*Contact, error) {
