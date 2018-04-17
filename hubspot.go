@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const (
@@ -50,6 +51,10 @@ func NewHubspotClient(auth Authenticator) *HubspotClient {
 	}
 
 	r.BaseURL = url
+	timeout := time.Duration(10 * time.Second)
+	r.client := &http.Client{
+		Timeout: timeout,
+	}
 	r.client = http.DefaultClient
 	r.common.client = r
 	r.ContactLists = (*ContactListsService)(&r.common)
