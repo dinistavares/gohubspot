@@ -161,36 +161,34 @@ func (c *HubspotClient) NewRequest(method, urlStr string, body interface{}) (*ht
 
 // Do sends an API request and returns the API response
 func (c *HubspotClient) Do(req *http.Request, v interface{}) error {
-
 	resp, err := c.client.Do(req)
 
-	if err != nil {
-		return err
-	}
+  if err != nil {
+    return err
+  }
 
-	defer func() {
-		// Drain up to 512 bytes and close the body to let the Transport reuse the connection
-		io.CopyN(ioutil.Discard, resp.Body, 512)
-		resp.Body.Close()
-	}()
+  defer func() {
+    io.CopyN(ioutil.Discard, resp.Body, 512)
+    resp.Body.Close()
+  }()
 
-	err = CheckResponse(resp)
-	if err != nil {
-		return err
-	}
+  err = CheckResponse(resp)
+  if err != nil {
+    return err
+  }
 
-	if v != nil {
-		if w, ok := v.(io.Writer); ok {
-			io.Copy(w, resp.Body)
-		} else {
-			err = json.NewDecoder(resp.Body).Decode(v)
-			if err == io.EOF {
-				err = nil //ignore EOF erros caused by empty response body
-			}
-		}
-	}
+  if v != nil {
+    if w, ok := v.(io.Writer); ok {
+      io.Copy(w, resp.Body)
+    } else {
+      err = json.NewDecoder(resp.Body).Decode(v)
+      if err == io.EOF {
+        err = nil
+      }
+    }
+  }
 
-	return nil
+  return err
 }
 
 func CheckResponse(r *http.Response) error {
