@@ -23,12 +23,15 @@ type HubspotClient struct {
 	BaseURL       *url.URL
 	UserAgent     string
 	// Services used for talking to different parts of the API
-	ContactLists      *ContactListsService
-	Contacts          *ContactsService
-	ContactProperties *ContactPropertiesService
-	CompanyProperties *CompanyPropertiesService
-	Companies         *CompaniesService
-	Forms             *FormService
+	AccountInformation *AccountInformationService
+	Deals              *DealsService
+	ContactLists       *ContactListsService
+	Contacts           *ContactsService
+	ContactProperties  *ContactPropertiesService
+	CompanyProperties  *CompanyPropertiesService
+	Companies          *CompaniesService
+	CRMAssociations    *CRMAssociationsService
+	Forms              *FormService
 }
 
 type service struct {
@@ -56,11 +59,14 @@ func NewHubspotClient(auth Authenticator) *HubspotClient {
 		Timeout: timeout,
 	}
 	r.common.client = r
+	r.AccountInformation = (*AccountInformationService)(&r.common)
+	r.Deals = (*DealsService)(&r.common)
 	r.ContactLists = (*ContactListsService)(&r.common)
 	r.Contacts = (*ContactsService)(&r.common)
 	r.ContactProperties = (*ContactPropertiesService)(&r.common)
 	r.CompanyProperties = (*CompanyPropertiesService)(&r.common)
 	r.Companies = (*CompaniesService)(&r.common)
+	r.CRMAssociations = (*CRMAssociationsService)(&r.common)
 	//r.Forms = (*FormService)(&r.common)
 	r.Forms = &FormService{service: r.common}
 
@@ -163,32 +169,32 @@ func (c *HubspotClient) NewRequest(method, urlStr string, body interface{}) (*ht
 func (c *HubspotClient) Do(req *http.Request, v interface{}) error {
 	resp, err := c.client.Do(req)
 
-  if err != nil {
-    return err
-  }
+	if err != nil {
+		return err
+	}
 
-  defer func() {
-    io.CopyN(ioutil.Discard, resp.Body, 512)
-    resp.Body.Close()
-  }()
+	defer func() {
+		io.CopyN(ioutil.Discard, resp.Body, 512)
+		resp.Body.Close()
+	}()
 
-  err = CheckResponse(resp)
-  if err != nil {
-    return err
-  }
+	err = CheckResponse(resp)
+	if err != nil {
+		return err
+	}
 
-  if v != nil {
-    if w, ok := v.(io.Writer); ok {
-      io.Copy(w, resp.Body)
-    } else {
-      err = json.NewDecoder(resp.Body).Decode(v)
-      if err == io.EOF {
-        err = nil
-      }
-    }
-  }
+	if v != nil {
+		if w, ok := v.(io.Writer); ok {
+			io.Copy(w, resp.Body)
+		} else {
+			err = json.NewDecoder(resp.Body).Decode(v)
+			if err == io.EOF {
+				err = nil
+			}
+		}
+	}
 
-  return err
+	return err
 }
 
 func CheckResponse(r *http.Response) error {
